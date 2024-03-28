@@ -6,26 +6,44 @@ const authenticate = require('../authenticate');
 const router = express.Router();
 
 /* GET users listing. */
-router.get('/', function(req, res) {
-  res.send('respond with a resource');
+router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+  User.find()
+  .then(users => res.status(200).json(users))
+  .catch(err => next(err))
+
 });
 
 router.post('/signup', (req, res, next) => {
   User.register(
     new User({username: req.body.username}),
     req.body.password,
-    err => {
+   (err, user) => {
       if (err) {
-        // This erros is for is there is a interal server error. Not user error.
+        // This errors is for is there is a interal server error. Not user error.
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');
         res.json({err: err});
       } else {
-        passport.authenticate('local')(req, res, () => {
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.json({succes: true, status: 'Registration Succesful!'});
+        if (req.body.firstname) {
+          user.firstname = req.body.firstname;
+        }
+        if (req.body.lastname) {
+          user.lastname = req.body.lastname;
+        }
+        user.save(err => {
+          if (err) {
+            res.statusCode = 500;
+            res.setHeader = ('Content-Type', 'application/json');
+            res.jsom({err: err});
+            return;
+          }
+          passport.authenticate('local')(req, res, () => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json({succes: true, status: 'Registration Succesful!'});
+          })
         })
+
       }
     }
   )

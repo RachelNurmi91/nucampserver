@@ -18,7 +18,6 @@ const partnerSchema = new Schema({
     },
     description: {
         type: String,
-        requiored: true,
     }
 }, { timestap: true 
 })
